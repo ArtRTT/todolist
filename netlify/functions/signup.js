@@ -2,7 +2,7 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// Configuração da conexão com o banco de dados Neon
+// CORREÇÃO APLICADA AQUI: Adiciona a configuração de conexão com o Neon
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -27,16 +27,12 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Tenta extrair os dados do corpo da requisição
-    // Se o corpo estiver vazio ou mal formatado, vai para o catch
     if (!event.body) {
         throw new Error("Corpo da requisição está vazio.");
     }
     const { email, password } = JSON.parse(event.body);
 
-    // Validação dos campos
     if (!email || !password) {
-      // A resposta de erro agora é um JSON
       return { statusCode: 400, body: JSON.stringify({ message: 'Email e senha são obrigatórios.' }), headers };
     }
 
@@ -67,11 +63,10 @@ exports.handler = async (event) => {
     }
 
   } catch (error) {
-    // CORREÇÃO APLICADA AQUI: Garante que o objeto de erro real seja logado
-    console.error('Erro no cadastro:', error); 
+    console.error('Erro no cadastro:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Ocorreu um erro no servidor. Verifique os dados enviados.' }),
+      body: JSON.stringify({ message: 'Ocorreu um erro no servidor.' }),
       headers
     };
   }
