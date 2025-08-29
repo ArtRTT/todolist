@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Ícones (Font Awesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos e Animações */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .task-item.completed span {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+        .fade-out {
+            animation: fadeOut 0.3s ease-in;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- Container Principal -->
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+        
+        <!-- Título -->
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Minhas Tarefas</h1>
+        
+        <!-- Formulário para Adicionar Tarefa -->
+        <div class="flex gap-2 mb-6">
+            <input 
+                type="text" 
+                id="task-input" 
+                placeholder="Escreva uma nova tarefa..."
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            >
+            <button 
+                id="add-task-btn"
+                class="bg-indigo-500 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition transform hover:scale-105"
+            >
+                Adicionar
+            </button>
+        </div>
+        
+        <!-- Lista de Tarefas -->
+        <ul id="task-list" class="space-y-3">
+            <!-- As tarefas salvas serão carregadas aqui -->
+        </ul>
+
+        <!-- Rodapé com Contador -->
+        <div id="footer" class="mt-6 pt-4 border-t border-gray-200 text-center text-gray-500">
+            <span id="task-counter">0</span> tarefas pendentes
+        </div>
+        
+    </div>
+
+    <script>
+        // --- SELEÇÃO DOS ELEMENTOS DO HTML ---
+        const taskInput = document.getElementById('task-input');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const taskList = document.getElementById('task-list');
+        const taskCounter = document.getElementById('task-counter');
+
+        // --- FUNÇÕES ---
+
+        /**
+         * Cria o elemento HTML para uma tarefa.
+         * @param {object} task - O objeto da tarefa { text: string, completed: boolean }.
+         */
+        function createTaskElement(task) {
+            const li = document.createElement('li');
+            li.className = 'task-item flex items-center justify-between bg-gray-100 p-3 rounded-lg transition-all duration-300 hover:bg-gray-200';
+            
+            // Adiciona a classe de concluído se a tarefa já estiver marcada
+            if (task.completed) {
+                li.classList.add('completed');
+            }
+
+            const span = document.createElement('span');
+            span.textContent = task.text;
+            span.className = 'flex-grow cursor-pointer mr-4';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.className = 'text-red-500 hover:text-red-700 transition transform hover:scale-110';
+
+            li.appendChild(span);
+            li.appendChild(deleteBtn);
+            
+            // Adiciona o elemento à lista na tela
+            taskList.appendChild(li);
+
+            // Animação de entrada
+            li.classList.add('fade-in');
+        }
+
+        /**
+         * Adiciona uma nova tarefa à lista.
+         */
+        function addTask() {
+            const taskText = taskInput.value.trim();
+
+            if (taskText === '') {
+                // Feedback visual para input vazio
+                taskInput.classList.add('shake');
+                setTimeout(() => taskInput.classList.remove('shake'), 300);
+                return;
+            }
+            
+            const task = { text: taskText, completed: false };
+            createTaskElement(task);
+            
+            taskInput.value = '';
+            updateTaskCount();
+            saveTasks();
+        }
+
+        /**
+         * Atualiza a contagem de tarefas pendentes.
+         */
+        function updateTaskCount() {
+            const pendingTasks = document.querySelectorAll('.task-item:not(.completed)').length;
+            taskCounter.textContent = pendingTasks;
+        }
+
+        /**
+         * Salva todas as tarefas no localStorage do navegador.
+         */
+        function saveTasks() {
+            const tasks = [];
+            document.querySelectorAll('.task-item').forEach(li => {
+                tasks.push({
+                    text: li.querySelector('span').textContent,
+                    completed: li.classList.contains('completed')
+                });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        /**
+         * Carrega as tarefas do localStorage quando a página é aberta.
+         */
+        function loadTasks() {
+            const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            savedTasks.forEach(task => createTaskElement(task));
+            updateTaskCount();
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Adicionar tarefa com clique ou tecla Enter
+        addTaskBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', event => {
+            if (event.key === 'Enter') addTask();
+        });
+
+        // Lidar com cliques na lista (marcar como concluída ou deletar)
+        taskList.addEventListener('click', event => {
+            const clickedElement = event.target;
+
+            // Marcar/desmarcar como concluída
+            if (clickedElement.tagName === 'SPAN') {
+                const li = clickedElement.parentElement;
+                li.classList.toggle('completed');
+                updateTaskCount();
+                saveTasks();
+            }
+
+            // Deletar tarefa
+            if (clickedElement.closest('button')) {
+                const li = clickedElement.closest('li');
+                li.classList.add('fade-out');
+                // Espera a animação terminar para remover o elemento
+                setTimeout(() => {
+                    li.remove();
+                    updateTaskCount();
+                    saveTasks();
+                }, 300);
+            }
+        });
+
+        // --- INICIALIZAÇÃO ---
+        // Carrega as tarefas salvas assim que a página é carregada
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+
+</body>
+</html>
