@@ -2,7 +2,9 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// CORREÇÃO APLICADA AQUI: Adiciona a configuração de conexão com o Neon
+// ** A CORREÇÃO ESTÁ AQUI **
+// Este bloco de código se conecta ao seu banco de dados Neon na nuvem.
+// Ele lê a connection string que você configurou nas variáveis de ambiente do Netlify.
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
