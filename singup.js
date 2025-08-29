@@ -36,7 +36,7 @@ exports.handler = async (event) => {
 
     // Validação dos campos
     if (!email || !password) {
-      // CORREÇÃO APLICADA AQUI: A resposta de erro agora é um JSON
+      // A resposta de erro agora é um JSON
       return { statusCode: 400, body: JSON.stringify({ message: 'Email e senha são obrigatórios.' }), headers };
     }
 
@@ -47,7 +47,6 @@ exports.handler = async (event) => {
     try {
       const userExists = await client.query('SELECT * FROM users WHERE email = $1', [email]);
       if (userExists.rowCount > 0) {
-        // CORREÇÃO APLICADA AQUI
         return { statusCode: 409, body: JSON.stringify({ message: 'Este email já está em uso.' }), headers };
       }
       
@@ -68,8 +67,8 @@ exports.handler = async (event) => {
     }
 
   } catch (error) {
-    console.error('Erro no cadastro:', error);
-    // CORREÇÃO APLICADA AQUI
+    // CORREÇÃO APLICADA AQUI: Garante que o objeto de erro real seja logado
+    console.error('Erro no cadastro:', error); 
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Ocorreu um erro no servidor. Verifique os dados enviados.' }),
