@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Lista de Tarefas</title>
+    <title>Login - Lista de Tarefas</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Estilos para manter a consistência com sua página principal */
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -29,13 +28,11 @@
     <!-- Container Principal -->
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
         
-        <!-- Título -->
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Criar Conta</h1>
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Fazer Login</h1>
         
-        <!-- Mensagem de Erro/Sucesso -->
         <div id="message-box" class="hidden p-3 mb-4 text-sm text-center rounded-lg"></div>
 
-        <!-- Formulário de Cadastro -->
+        <!-- Formulário de Login -->
         <div class="space-y-4">
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -56,96 +53,83 @@
                 >
             </div>
             <button 
-                id="signup-button" 
+                id="login-button" 
                 class="w-full bg-indigo-500 text-white py-3 rounded-lg font-semibold hover:bg-indigo-600 transition transform hover:scale-105"
             >
-                Cadastrar
+                Entrar
             </button>
         </div>
         
         <p class="text-center text-sm text-gray-500 mt-6">
-            Já tem uma conta? <a href="./index.html" class="font-medium text-indigo-600 hover:underline">Faça Login</a>
+            Não tem uma conta? <a href="./cadastro.html" class="font-medium text-indigo-600 hover:underline">Cadastre-se</a>
         </p>
     </div>
 
     <script>
-        // --- 1. SELEÇÃO DOS ELEMENTOS DO HTML ---
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
-        const signUpButton = document.getElementById('signup-button');
+        const loginButton = document.getElementById('login-button');
         const messageBox = document.getElementById('message-box');
 
-        // --- 2. FUNÇÃO DE CADASTRO ---
-        const handleSignUp = async () => {
+        const handleLogin = async () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
-            // Validação simples no frontend para feedback rápido
             if (!email || !password) {
                 showMessage('Por favor, preencha todos os campos.', 'error');
                 return;
             }
 
-            // Desabilita o botão para evitar múltiplos envios
-            signUpButton.disabled = true;
-            signUpButton.textContent = 'Cadastrando...';
+            loginButton.disabled = true;
+            loginButton.textContent = 'Entrando...';
 
             try {
-                // Chama a nossa Netlify Function de backend
-                const response = await fetch('/.netlify/functions/signup', {
+                // Chama a nossa nova função de backend para login
+                const response = await fetch('/.netlify/functions/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
                 });
 
-                // Pega a resposta do backend em formato JSON
                 const result = await response.json();
 
-                // Se a resposta não for de sucesso (ex: erro 409, 500), lança um erro com a mensagem do backend
                 if (!response.ok) {
-                    throw new Error(result.message || 'Ocorreu um erro desconhecido.');
+                    throw new Error(result.message || 'Ocorreu um erro.');
                 }
                 
-                // Se o cadastro for bem-sucedido, mostra uma mensagem de sucesso
-                showMessage('Cadastro realizado com sucesso! Você já pode fazer login.', 'success');
-                emailInput.value = '';
-                passwordInput.value = '';
+                // Se o login for bem-sucedido
+                showMessage('Login bem-sucedido! Redirecionando...', 'success');
+                
+                // IMPORTANTE: Em um app real, você salvaria o "token" de autenticação aqui.
+                // Ex: localStorage.setItem('authToken', result.token);
+
+                // Redireciona para a página principal da lista de tarefas
+                setTimeout(() => {
+                    window.location.href = '/tarefas.html'; // Sugestão: crie uma página tarefas.html
+                }, 1500); // Espera um pouco para o usuário ver a mensagem
 
             } catch (error) {
-                // Captura qualquer erro (de rede ou do backend) e o exibe
                 showMessage(`Erro: ${error.message}`, 'error');
             } finally {
-                // Reabilita o botão, independentemente do resultado
-                signUpButton.disabled = false;
-                signUpButton.textContent = 'Cadastrar';
+                loginButton.disabled = false;
+                loginButton.textContent = 'Entrar';
             }
         };
 
-        // Função auxiliar para exibir mensagens de feedback para o usuário
         function showMessage(message, type) {
             messageBox.textContent = message;
-            messageBox.className = 'p-3 mb-4 text-sm text-center rounded-lg'; // Reseta as classes de estilo
-            
+            messageBox.className = 'p-3 mb-4 text-sm text-center rounded-lg';
             if (type === 'error') {
                 messageBox.classList.add('bg-red-100', 'text-red-700');
             } else {
                 messageBox.classList.add('bg-green-100', 'text-green-700');
             }
-            
-            messageBox.classList.remove('hidden'); // Torna a caixa de mensagem visível
+            messageBox.classList.remove('hidden');
         }
 
-        // --- 3. EVENT LISTENERS ---
-        // Adiciona o evento de clique ao botão de cadastro
-        signUpButton.addEventListener('click', handleSignUp);
-        
-        // Adiciona um listener para a tecla "Enter" no campo de senha para facilitar o envio
+        loginButton.addEventListener('click', handleLogin);
         passwordInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                handleSignUp();
-            }
+            if (event.key === 'Enter') handleLogin();
         });
     </script>
 
