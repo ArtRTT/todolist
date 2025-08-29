@@ -2,7 +2,7 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// Configuração da conexão com o banco de dados Neon
+// CORREÇÃO APLICADA AQUI: Adiciona a configuração de conexão com o Neon
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -22,7 +22,7 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed', headers };
+    return { statusCode: 405, body: JSON.stringify({ message: 'Método não permitido.' }), headers };
   }
 
   try {
@@ -37,7 +37,6 @@ exports.handler = async (event) => {
       // 1. Encontrar o usuário pelo e-mail
       const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
       
-      // Se o usuário não for encontrado, retorna um erro genérico por segurança
       if (userResult.rowCount === 0) {
         return { statusCode: 401, body: JSON.stringify({ message: 'Credenciais inválidas.' }), headers };
       }
@@ -47,19 +46,16 @@ exports.handler = async (event) => {
       // 2. Comparar a senha enviada com a senha criptografada no banco
       const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
       
-      // Se as senhas não baterem, retorna o mesmo erro genérico
       if (!isPasswordCorrect) {
         return { statusCode: 401, body: JSON.stringify({ message: 'Credenciais inválidas.' }), headers };
       }
 
       // 3. Se tudo estiver correto, o login é bem-sucedido
-      // (Em um app real, aqui você geraria um token JWT para manter o usuário logado)
       return {
         statusCode: 200,
         body: JSON.stringify({ 
           message: 'Login bem-sucedido!',
           user: { id: user.id, email: user.email }
-          // token: "seu_token_jwt_aqui" 
         }),
         headers
       };
